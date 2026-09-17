@@ -1,0 +1,42 @@
+[package]
+name = "ahx"
+version = "0.1.0"
+edition = "2021"
+license = "LGPL-2.1-or-later"
+description = "Safe, allocation-free CRI AHX audio decoding with no_std support"
+repository = "https://github.com/rowanG077/ahx-rs"
+documentation = "https://docs.rs/ahx"
+readme = "README.md"
+keywords = ["ahx", "audio", "decoder", "no-std", "gamedev"]
+categories = ["multimedia::audio", "multimedia::encoding", "no-std::no-alloc"]
+include = [
+  "/src/**",
+  "/tests/*.rs",
+  "/tests/fixtures/**",
+  "/scripts/generate_mpg123.py",
+  "/Cargo.toml",
+  "/Cargo.lock",
+  "/README.md",
+  "/CHANGELOG.md",
+  "/RELEASING.md",
+  "/COPYING",
+  "/NOTICE",
+  "/AUTHORS.mpg123",
+  "/LICENSE.vgmstream",
+]
+
+[features]
+default = ["std"]
+std = []
+
+[dependencies]
+libm = { version = "0.2.16", default-features = false }
+
+[[bin]]
+name = "ahx"
+path = "src/main.rs"
+required-features = ["std"]
+
+[lints.rust]
+unsafe_code = "forbid"
+missing_docs = "warn"

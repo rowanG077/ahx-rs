@@ -1,0 +1,27 @@
+AHX Rust decoder, 2026. Licensed LGPL-2.1-or-later (COPYING).
+
+The narrow Layer II implementation, scale/window tables, and synthesis derive
+from mpg123 1.33.7, copyright 1994-2021 the mpg123 project. Original Layer II
+and window code: Michael Hipp. NEON64 float DCT and synthesis: Taihei Monma,
+copyright 1995-2014 the mpg123 project. See AUTHORS.mpg123 for upstream credits.
+Sources: src/libmpg123/{layer2.c,l2tables.h,l12tabs.h,tabinit.c,
+dct64_neon64_float.S,synth_neon64_float.S,synth_real.c} in
+https://www.mpg123.de/download/mpg123-1.33.7.tar.bz2
+
+Modifications: safe Rust, mono fixed-header AHX subset only; scalar DCT
+translation and explicitly fused multiply-add retain the aarch64 reference
+arithmetic on other CPUs. Standard builds use f32::mul_add; allocation-free
+no_std builds use libm 0.2.16 (MIT), with its default architecture paths
+disabled. All state is owned, bounded, and streaming. No native code,
+FFI, runtime CPU dispatch, resampling, or gapless trimming is used.
+
+dct.rs and tables.rs were generated from these pinned sources by
+scripts/generate_mpg123.py, then formatted with rustfmt. The generation is an
+offline maintenance aid, not a build step or production dependency.
+
+AHX framing and PCM16 conversion were checked against vgmstream r2117
+src/meta/ahx.c, src/coding/mpeg_custom_utils_ahx.c, src/base/sbuf.c.
+Its copyright and permission notice is preserved in LICENSE.vgmstream.
+
+The test input and PCM golden file are synthetic and may be redistributed.
+The PCM fixture was generated with the pinned aarch64 vgmstream/mpg123 build.

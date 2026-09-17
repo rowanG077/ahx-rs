@@ -1,0 +1,16 @@
+[package]
+name = "ahx-no-std-check"
+version = "0.0.0"
+edition = "2021"
+publish = false
+
+[workspace]
+
+[lib]
+crate-type = ["staticlib"]
+
+[dependencies]
+ahx = { path = "../..", default-features = false }
+
+[profile.release]
+panic = "abort"
