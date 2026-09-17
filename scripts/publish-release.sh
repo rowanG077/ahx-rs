@@ -13,12 +13,12 @@ output=target/release-upload
 # On retries, only skip crates.io if the uploaded archive is exactly this build.
 status=$(curl --silent --show-error --retry 3 --output "$temporary/registry" \
 	--user-agent "ahx-release ($GITHUB_REPOSITORY)" \
-	--write-out '%{http_code}' "https://crates.io/api/v1/crates/ahx/$version")
+	--write-out '%{http_code}' "https://crates.io/api/v1/crates/ahx-rs/$version")
 case "$status" in
 200)
 	checksum=$(sha256sum "$output/package.crate")
 	if [[ ${checksum%% *} != "$(jq -r '.version.checksum' "$temporary/registry")" ]]; then
-		echo "crates.io already has different contents for ahx $version" >&2
+		echo "crates.io already has different contents for ahx-rs $version" >&2
 		exit 1
 	fi
 	published=true
@@ -52,13 +52,21 @@ if [[ -z $release ]]; then
 fi
 
 if [[ $published == false ]]; then
+	status=0
 	curl --fail-with-body --silent --show-error --request PUT \
 		--header "Authorization: $CARGO_REGISTRY_TOKEN" \
 		--header 'Content-Type: application/octet-stream' \
 		--header 'Accept: application/json' \
 		--user-agent "ahx-release ($GITHUB_REPOSITORY)" \
 		--data-binary "@$output/upload.bin" \
-		--output "$temporary/response" https://crates.io/api/v1/crates/new
+		--output "$temporary/response" https://crates.io/api/v1/crates/new || status=$?
+	if ((status != 0)); then
+		if [[ -s $temporary/response ]]; then
+			cat "$temporary/response" >&2
+			printf '\n' >&2
+		fi
+		exit "$status"
+	fi
 	if ! jq -e '(.errors // []) | length == 0' "$temporary/response" >/dev/null; then
 		jq -r '.errors[]?.detail' "$temporary/response" >&2
 		exit 1

@@ -1,6 +1,6 @@
 //! Exact synthetic reference and malformed-input coverage.
 
-use ahx::{Error, SliceDecoder as Decoder};
+use ahx_rs::{Error, SliceDecoder as Decoder};
 
 const INPUT: &[u8] = include_bytes!("fixtures/continuity.ahx");
 const PCM: &[u8] = include_bytes!("fixtures/continuity.pcm");

@@ -69,7 +69,7 @@ prepare)
 	;;
 check)
 	actual=$(cargo metadata --locked --offline --format-version 1 |
-		jq -r '.packages[] | select(.name == "ahx") | .version')
+		jq -r '.packages[] | select(.name == "ahx-rs") | .version')
 	if [[ $actual != "$version" ]]; then
 		echo "Tag $tag does not match Cargo.toml version $actual" >&2
 		exit 1

@@ -2,9 +2,6 @@
 
 ## Unreleased
 
-## 0.1.0
-
-
 - Decode unencrypted mono CRI AHX type `0x10` to PCM16 at declared 32,000,
   44,100 and 48,000 Hz rates, preserving startup synthesis samples and trimming
   the final frame to the declared duration.
@@ -22,4 +19,3 @@
   tests, bounded fuzzing, and checks across feature sets, profiles and platforms.
 - Add tag-triggered release preparation, a reviewed release PR with validated
   package artifacts, and publication after merge, matching the H4M release flow.
-

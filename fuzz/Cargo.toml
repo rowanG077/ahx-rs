@@ -9,7 +9,7 @@ cargo-fuzz = true
 
 [dependencies]
 libfuzzer-sys = "0.4"
-ahx = { path = "..", default-features = false }
+ahx-rs = { path = "..", default-features = false }
 
 [[bin]]
 name = "decode"

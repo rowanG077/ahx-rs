@@ -1,4 +1,4 @@
-# ahx
+# ahx-rs
 
 Safe Rust decoding for unencrypted mono CRI AHX type `0x10` (version 6). The
 library supports declared 32,000, 44,100 and 48,000 Hz rates, fixed `FFF5E0C0`
@@ -28,11 +28,11 @@ can change the final PCM16. There is no C, FFI, or native decoding dependency.
 ## Decode a byte slice without an allocator
 
 ```toml
-ahx = { path = "/path/to/ahx-rs", default-features = false }
+ahx-rs = { version = "0.1", default-features = false }
 ```
 
 ```rust
-use ahx::{Error, SliceDecoder};
+use ahx_rs::{Error, SliceDecoder};
 
 fn decode(input: &[u8]) -> Result<(), Error> {
     let mut decoder = SliceDecoder::new(input)?;
@@ -55,7 +55,7 @@ Default decoders own their PCM array, so no caller sizing is necessary. To use
 an arena or reusable buffer, provide **`SAMPLES_PER_FRAME` (1,152) `i16` elements**:
 
 ```rust
-use ahx::{Error, SliceDecoder, SAMPLES_PER_FRAME};
+use ahx_rs::{Error, SliceDecoder, SAMPLES_PER_FRAME};
 
 fn decode(input: &[u8]) -> Result<(), Error> {
     let mut pcm = [0i16; SAMPLES_PER_FRAME];
@@ -95,7 +95,7 @@ metadata, or trim output. Complete-file decoders handle those responsibilities.
 # #[cfg(feature = "std")]
 # fn example() -> Result<(), Box<dyn std::error::Error>> {
 use std::{fs::File, io::BufReader};
-let mut decoder = ahx::Decoder::new(BufReader::new(File::open("voice.ahx")?))?;
+let mut decoder = ahx_rs::Decoder::new(BufReader::new(File::open("voice.ahx")?))?;
 while let Some(pcm) = decoder.next_block()? {
     // Consume the borrowed mono samples.
 }

@@ -9,8 +9,8 @@ fn panic(_: &core::panic::PanicInfo<'_>) -> ! {
 }
 
 #[no_mangle]
-pub fn decode_ahx(input: &[u8], pcm: &mut [i16]) -> Result<u64, ahx::Error> {
-    let mut decoder = ahx::SliceDecoder::with_buffer(input, pcm)?;
+pub fn decode_ahx(input: &[u8], pcm: &mut [i16]) -> Result<u64, ahx_rs::Error> {
+    let mut decoder = ahx_rs::SliceDecoder::with_buffer(input, pcm)?;
     let mut samples = 0;
     while let Some(block) = decoder.next_block()? {
         samples += block.len() as u64;
@@ -19,8 +19,8 @@ pub fn decode_ahx(input: &[u8], pcm: &mut [i16]) -> Result<u64, ahx::Error> {
 }
 
 #[no_mangle]
-pub fn decode_ahx_packet(input: &[u8], pcm: &mut [i16]) -> Result<usize, ahx::Error> {
-    Ok(ahx::PacketDecoder::new()
+pub fn decode_ahx_packet(input: &[u8], pcm: &mut [i16]) -> Result<usize, ahx_rs::Error> {
+    Ok(ahx_rs::PacketDecoder::new()
         .decode_into(input, pcm)?
         .consumed_bytes())
 }

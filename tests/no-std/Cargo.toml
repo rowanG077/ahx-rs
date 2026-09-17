@@ -10,7 +10,7 @@ publish = false
 crate-type = ["staticlib"]
 
 [dependencies]
-ahx = { path = "../..", default-features = false }
+ahx-rs = { path = "../..", default-features = false }
 
 [profile.release]
 panic = "abort"

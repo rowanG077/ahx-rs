@@ -12,10 +12,10 @@ cargo publish --locked --registry crates-io --dry-run --no-verify
 
 output=target/release-upload
 mkdir -p "$output"
-cp "target/package/ahx-$version.crate" "$output/package.crate"
+cp "target/package/ahx-rs-$version.crate" "$output/package.crate"
 ./scripts/release-metadata.sh notes "$tag" >"$output/notes.md"
 cargo metadata --locked --offline --format-version 1 | jq --rawfile readme README.md '
-    .packages[] | select(.name == "ahx") |
+    .packages[] | select(.name == "ahx-rs") |
     {
         name, vers: .version,
         deps: [.dependencies[] | {

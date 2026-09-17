@@ -1,6 +1,6 @@
 //! Public storage, parsing, ownership and error contracts.
 
-use ahx::{
+use ahx_rs::{
     DecoderState, Error, InvalidData, Metadata, PacketDecoder, SliceDecoder, UnsupportedData,
     MAX_FRAME_BYTES, SAMPLES_PER_FRAME,
 };
@@ -366,7 +366,7 @@ fn caught_io_panics_leave_the_decoder_failed() {
             self.0.read(out)
         }
     }
-    let mut decoder = ahx::Decoder::new(Panicking(INPUT)).unwrap();
+    let mut decoder = ahx_rs::Decoder::new(Panicking(INPUT)).unwrap();
     assert!(std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
         let _ = decoder.next_block();
     }))
@@ -392,7 +392,7 @@ fn standard_io_fragmentation_errors_and_position_match_the_slice_api() {
     }
     let mut input = INPUT.to_vec();
     input.extend_from_slice(b"trailing");
-    let mut decoder = ahx::Decoder::new(Fragmented(&input, false)).unwrap();
+    let mut decoder = ahx_rs::Decoder::new(Fragmented(&input, false)).unwrap();
     let mut output = Vec::new();
     while let Some(pcm) = decoder.next_block().unwrap() {
         output.extend_from_slice(pcm);

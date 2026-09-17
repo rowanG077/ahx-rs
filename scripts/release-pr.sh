@@ -20,13 +20,17 @@ fi
 
 existing=$(gh api --method GET "$api/pulls" -f state=all \
 	-f "head=${repository%%/*}:$branch" -f "base=$base" --jq '.[0].state // empty')
-if [[ $existing == closed ]]; then
-	echo "The release PR for $tag is already closed; reopen it or use a new version" >&2
-	exit 1
-fi
-
 head=$(gh api "$api/git/matching-refs/heads/$branch" \
 	--jq ".[] | select(.ref == \"refs/heads/$branch\") | .object.sha")
+if [[ $existing == closed ]]; then
+	if [[ -n $head ]]; then
+		echo "The release PR for $tag is already closed; delete its branch before preparing a new release request" >&2
+		exit 1
+	fi
+	# A deleted release branch and absent GitHub release allow a fresh request.
+	# Keep the historical closed PR; the new request gets its own PR and CI.
+	existing=
+fi
 if [[ -z $head ]]; then
 	jq -n --arg base "$(git rev-parse 'HEAD^{tree}')" \
 		--rawfile manifest Cargo.toml --rawfile lock Cargo.lock --rawfile changelog CHANGELOG.md \

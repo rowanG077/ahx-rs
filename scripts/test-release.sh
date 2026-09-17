@@ -20,7 +20,7 @@ export MOCK_RUN=99 MOCK_SENT="$temporary/sent-upload"
 printf '# Test crate\n\nUTF-8: café\n' >README.md
 cat >Cargo.toml <<'MANIFEST'
 [package]
-name = "ahx"
+name = "ahx-rs"
 version = "0.1.0"
 edition = "2021"
 description = "Release test fixture"
@@ -39,7 +39,7 @@ version = "0.0.0"
 edition = "2021"
 [workspace]
 [dependencies]
-ahx = { path = "$(realpath --relative-to="$entry" .)" }
+ahx-rs = { path = "$(realpath --relative-to="$entry" .)" }
 MANIFEST
 	cargo generate-lockfile --offline --manifest-path "$entry/Cargo.toml"
 done
@@ -80,7 +80,7 @@ CHANGELOG
 ./scripts/release-metadata.sh prepare v0.2.0
 for manifest in fuzz/Cargo.toml tests/no-std/Cargo.toml; do
 	cargo metadata --offline --locked --manifest-path "$manifest" --format-version 1 |
-		jq -e '.packages[] | select(.name == "ahx") | .version == "0.2.0"' >/dev/null
+		jq -e '.packages[] | select(.name == "ahx-rs") | .version == "0.2.0"' >/dev/null
 done
 ./scripts/release-metadata.sh notes v0.2.0 >"$temporary/notes"
 grep -q 'Hand-written notes' "$temporary/notes"
@@ -165,6 +165,7 @@ method=GET
 output=
 payload=
 user_agent=
+url=
 while (($#)); do
     case "$1" in
         --request)
@@ -183,6 +184,10 @@ while (($#)); do
             user_agent=$2
             shift 2
             ;;
+        https://*)
+            url=$1
+            shift
+            ;;
         *) shift ;;
     esac
 done
@@ -193,6 +198,7 @@ if [[ $user_agent != "ahx-release ($GITHUB_REPOSITORY)" ]]; then
     exit
 fi
 if [[ $method == PUT ]]; then
+    [[ $url == https://crates.io/api/v1/crates/new ]]
     echo 'crate upload' >> "$MOCK_LOG"
     cp "$payload" "$MOCK_SENT"
     if [[ -n ${MOCK_RESPONSE:-} ]]; then
@@ -202,6 +208,7 @@ if [[ $method == PUT ]]; then
     fi
     exit "${MOCK_PUBLISH_FAIL:-0}"
 fi
+[[ $url == https://crates.io/api/v1/crates/ahx-rs/* ]]
 printf '{"version":{"checksum":"%s"}}' "${MOCK_CHECKSUM:-}" > "$output"
 printf '%s' "$MOCK_STATUS"
 MOCK
@@ -241,17 +248,23 @@ expect_failure grep -q 'POST repos/example/ahx/git/' "$MOCK_LOG"
 expect_failure grep -q 'POST repos/example/ahx/pulls' "$MOCK_LOG"
 export MOCK_PR_STATE=closed
 expect_failure ./scripts/release-pr.sh v0.3.0-rc.1
-export MOCK_PR_STATE=open MOCK_RELEASE=42
+: >"$MOCK_LOG"
+export MOCK_HEAD=''
+./scripts/release-pr.sh v0.3.0-rc.1 >/dev/null
+grep -q 'POST repos/example/ahx/git/refs' "$MOCK_LOG"
+grep -q 'POST repos/example/ahx/pulls' "$MOCK_LOG"
+grep -q 'POST repos/example/ahx/actions/workflows/ci.yml/dispatches' "$MOCK_LOG"
+export MOCK_HEAD=$MOCK_TAG_COMMIT MOCK_PR_STATE=open MOCK_RELEASE=42
 expect_failure ./scripts/release-pr.sh v0.3.0-rc.1
 export MOCK_RELEASE=''
 
 # Validate and package before merging. Verify both little-endian length prefixes
 # and that the upload contains the exact JSON and crate, including UTF-8 text.
 mkdir -p target/package
-printf 'test archive' >target/package/ahx-0.3.0-rc.1.crate
+printf 'test archive' >target/package/ahx-rs-0.3.0-rc.1.crate
 ./scripts/package-release.sh v0.3.0-rc.1
 upload=target/release-upload
-jq -e '.name == "ahx" and .vers == "0.3.0-rc.1" and .readme_file == "README.md"' "$upload/metadata.json" >/dev/null
+jq -e '.name == "ahx-rs" and .vers == "0.3.0-rc.1" and .readme_file == "README.md"' "$upload/metadata.json" >/dev/null
 read -r -a prefix <<<"$(od -An -tu1 -N4 "$upload/upload.bin")"
 json_size=$((prefix[0] + (prefix[1] << 8) + (prefix[2] << 16) + (prefix[3] << 24)))
 cmp <(dd if="$upload/upload.bin" bs=1 skip=4 count="$json_size" status=none) "$upload/metadata.json"
@@ -306,8 +319,10 @@ test ! -s "$MOCK_LOG"
 export MOCK_STATUS=503
 expect_failure ./scripts/publish-release.sh v0.3.0-rc.1
 test ! -s "$MOCK_LOG"
-export MOCK_STATUS=404 MOCK_PUBLISH_FAIL=1
+export MOCK_STATUS=404 MOCK_PUBLISH_FAIL=22
+export MOCK_RESPONSE='{"errors":[{"detail":"crate name is owned by another account"}]}'
 expect_failure ./scripts/publish-release.sh v0.3.0-rc.1
+grep -Fq 'crate name is owned by another account' "$temporary/failure"
 expect_failure grep -q 'draft=false' "$MOCK_LOG"
 export MOCK_PUBLISH_FAIL=0 MOCK_RESPONSE='{"errors":[{"detail":"registry rejected upload"}]}'
 expect_failure ./scripts/publish-release.sh v0.3.0-rc.1

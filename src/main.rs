@@ -30,7 +30,7 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
         return Err(USAGE.into());
     }
 
-    let mut decoder = ahx::Decoder::new(BufReader::new(File::open(input)?))?;
+    let mut decoder = ahx_rs::Decoder::new(BufReader::new(File::open(input)?))?;
     let metadata = decoder.metadata();
     let riff_size = metadata
         .samples()

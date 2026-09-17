@@ -34,8 +34,9 @@ the saved bytes to crates.io; no Cargo, builds, or tests run after merging.
 
 All workflows share the Nix cache setup. The only custom secret is
 `CARGO_REGISTRY_TOKEN`; GitHub's token handles PRs and releases. Actions must be
-allowed to create PRs and update the request tag. Creating the PR explicitly
-dispatches CI. Merge through the UI or your own credentials to trigger publishing.
+allowed to create PRs and update the request tag. The crates.io token must permit
+publishing the `ahx-rs` package, including creating it for its first release.
+Creating the PR explicitly dispatches CI. Merge through the UI or your own credentials to trigger publishing.
 
 The tag moves to the merge commit. Refresh it locally afterwards with
 `git fetch origin tag v0.1.0 --force`.
@@ -49,6 +50,13 @@ If the upload scripts needed a fix, merge it first, then choose **Actions →
 Release → Run workflow** on the default branch and enter the original release
 PR number. This uses the latest upload scripts with that PR's original validated
 artifact and merge commit. No version bump or new tag is needed.
+
+If a release failed before publishing to crates.io and needs different package
+contents, delete its draft GitHub release, request tag, and merged release branch.
+Apply the fix on the default branch, put the unpublished notes back under
+`Unreleased`, and push the same version tag again. Preparation creates a fresh PR
+and CI artifact; it does not reuse the old upload. Never reset a version already
+published to crates.io.
 
 Artifacts are retained for 90 days; refresh an old PR's checks before merging.
 Outages, expired credentials, or missing artifacts can still interrupt delivery.
