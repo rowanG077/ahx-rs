@@ -17,8 +17,11 @@ fn decode(input: &[u8]) -> Result<Vec<i16>, Error> {
 #[test]
 fn canonical_pcm_and_synthesis_continuity() {
     let expected: Vec<_> = PCM
-        .chunks_exact(2)
-        .map(|p| i16::from_le_bytes([p[0], p[1]]))
+        .as_chunks::<2>()
+        .0
+        .iter()
+        .copied()
+        .map(i16::from_le_bytes)
         .collect();
     assert_eq!(decode(INPUT).unwrap(), expected);
     assert!(expected[1152..].iter().any(|s| *s != 0));

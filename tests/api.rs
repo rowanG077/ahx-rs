@@ -10,8 +10,11 @@ const GOLDEN: &[u8] = include_bytes!("fixtures/continuity.pcm");
 
 fn expected() -> Vec<i16> {
     GOLDEN
-        .chunks_exact(2)
-        .map(|p| i16::from_le_bytes([p[0], p[1]]))
+        .as_chunks::<2>()
+        .0
+        .iter()
+        .copied()
+        .map(i16::from_le_bytes)
         .collect()
 }
 
